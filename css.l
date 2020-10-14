@@ -1,5 +1,5 @@
 %{
-#include "y.tab.h"
+#include "css.tab.h"
 %}
 
 %option case-insensitive
@@ -30,8 +30,8 @@ badstring      {badstring1}|{badstring2}
 badcomment     {badcomment1}|{badcomment2}
 baduri         {baduri1}|{baduri2}|{baduri3}
 url	           ([!#$%&*-~]|{nonascii}|{escape})*
-s              [ \t\r\n\f]+
-w              {s}?
+s              [ \t\r\n\f]*
+w              [{s}]?
 nl             \n|\r\n|\r|\f
 
 A		a|\\0{0,4}(41|61)(\r\n|[ \t\r\n\f])?
@@ -56,7 +56,7 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 
 %%
 
-{s}                     {return S;}
+{s} {}
 
 \/\*[^*]*\*+([^/*][^*]*\*+)*\/       /* ignore comments */
 {badcomment}                         /* unclosed comment at EOF */
@@ -66,9 +66,9 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 "~="                    {return INCLUDES;}
 "|="                    {return DASHMATCH;}
 "::"                    {return DOUBLEPOINT;}
-"and"                   {return LOGAND;}
+{w}"and"{w}                   {return LOGAND;}
 
-{string}                { yylval.string = strdup(yytext);
+{string}               { yylval.string = strdup(yytext);
                           return STRING;
                         }
                         
@@ -111,7 +111,6 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 {num}			        {return NUMBER;}
 
 "url("{w}{string}{w}")" {return URI;}
-""{w}{string}{w}""      {return URI_STRING;}
 "url("{w}{url}{w}")"    {return URI;}
 {baduri}                {return BAD_URI;}
 

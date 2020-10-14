@@ -22,7 +22,7 @@ int yyerror(const char *s)
 %token <string> DASHMATCH
 %token DIMENSION
 %token EMS EXS
-%token S
+%token SP
 %token DOUBLEPOINT
 %token LOGAND
 %token <string> STRING
@@ -40,7 +40,6 @@ int yyerror(const char *s)
 %token <string> PERCENTAGE 
 %token <string> TIME
 %token <string> URI
-%token <string> URI_STRING
 
 %type <string> type_selector
 %type <string> id_selector
@@ -71,7 +70,7 @@ charset
 
 comments
     :
-    | comments S
+    | comments SP
     | comments CDO
     | comments CDC
 ;
@@ -95,32 +94,29 @@ body
 
 subcomments
     :
-    | subcomments CDO spaces
-    | subcomments CDC spaces
+    | subcomments CDO 
+    | subcomments CDC 
 ;
 
 import // : IMPORT_SYM S* [STRING|URI] S* media_list? ';' S* ;
-    : IMPORT_SYM spaces STRING spaces media_list ';' spaces
-    | IMPORT_SYM spaces URI spaces media_list ';' spaces
-    | IMPORT_SYM spaces STRING spaces ';' spaces
-    | IMPORT_SYM spaces URI spaces ';' spaces
+    : IMPORT_SYM  STRING  media_list ';' 
+    | IMPORT_SYM  URI  media_list ';' 
+    | IMPORT_SYM  STRING  ';' 
+    | IMPORT_SYM  URI  ';' 
 ;
     
 namespace // : NAMESPACE_SYM S* [STRING|URI] S* media_list? ';' S* ;
-    : NAMESPACE_SYM spaces prefix uri_url ';' spaces
+    : NAMESPACE_SYM prefix URI ';' 
+    | NAMESPACE_SYM prefix STRING ';'  
+    | NAMESPACE_SYM prefix BAD_URI ';'
 ;
     
 prefix 
-    : prefix
-    | IDENT spaces {printf("perix here 2\n");}
+    : IDENT  {printf("perix here 2\n");}
 ;
 
-uri_url
-    : URI_STRING spaces
-    | URI spaces;
-
 media // : MEDIA_SYM S* media_list '{' S* ruleset* '}' S* ;
-    : MEDIA_SYM spaces media_list '{' spaces rulesets '}' spaces
+    : MEDIA_SYM  media_list '{'  rulesets '}' 
 ;
 
 rulesets
@@ -130,41 +126,44 @@ rulesets
 
 media_list // : medium [ COMMA S* medium]* ;
     : medium
-    | media_list ',' spaces medium
+    | media_list LOGAND medium
+    | media_list ',' medium
 ;
 
+
+
 medium // : IDENT S* ;
-    : IDENT spaces
+    : IDENT
 ;
 
 page // : PAGE_SYM S* pseudo_page?
      //   '{' S* declaration? [ ';' S* declaration? ]* '}' S* ;
-    : PAGE_SYM spaces pseudo_page '{' page_declarations '}' spaces
-    | PAGE_SYM spaces '{' page_declarations '}' spaces
+    : PAGE_SYM  pseudo_page '{' page_declarations '}' 
+    | PAGE_SYM  '{' page_declarations '}' 
 ;
 
 page_declarations
-    : spaces declaration
-    | spaces
-    | page_declarations ';' spaces declaration
-    | page_declarations ';' spaces
+    :  declaration
+    | 
+    | page_declarations ';'  declaration
+    | page_declarations ';' 
 ;
 
 pseudo_page // : ':' IDENT S* ;
-    : ':' IDENT spaces
+    : ':' IDENT 
 ;
 
 operator // : '/' S* | ',' S* ;
-    : '/' spaces
-    | ',' spaces
+    : '/' 
+    | ',' 
 ;
 
 combinator // : '+' S* | '>' S* ;
-    : '+' spaces
+    : '+' 
     {
 
     }
-    | '>' spaces
+    | '>' 
     {
         
     }
@@ -176,29 +175,30 @@ unary_operator // : '-' | '+' ;
 ;
 
 property // : IDENT S* ;
-    : IDENT spaces
+    : IDENT 
     {
         $$ = $1;
+        printf ("property -  %s\n",$1);
     }
 ;
 
 ruleset // : selector [ ',' S* selector ]* '{' S* declaration? [ ';' S* declaration? ]* '}' S* ;
-    : selector_list '{' spaces declarations '}' spaces
-    | selector_list '{' spaces '}' spaces
+    : selector_list '{'  declarations '}' 
+    | selector_list '{'  '}' 
 ;
 
 selector_list
     : complex_selector
     | universal_selector
-    | selector_list ',' spaces complex_selector
-    | selector_list ',' spaces universal_selector
+    | selector_list ','  complex_selector
+    | selector_list ','  universal_selector
 ;
 
 complex_selector // : simple_selector [ combinator selector | S+ [ combinator? selector ]? ]? ;
     : compound_selector
     | complex_selector combinator compound_selector
-    | complex_selector S compound_selector 
-    | complex_selector S
+    | complex_selector  compound_selector 
+    | complex_selector 
         /* for space symbols skipping */
 ;
 
@@ -239,9 +239,9 @@ type_selector // : IDENT | '*' ;
 ;
 
 attribute_selector // : '[' S* IDENT S* [ [ '=' | INCLUDES | DASHMATCH ] S* [ IDENT | STRING ] S* ]? ']';
-    : '[' spaces IDENT spaces ']'
+    : '['  IDENT  ']'
     {  }
-    | '[' spaces IDENT spaces attrib_eq spaces attrib_value spaces ']'
+    | '['  IDENT  attrib_eq  attrib_value  ']'
     {  }
 ;
 
@@ -273,29 +273,28 @@ pseudo_class_selector // : ':' [ IDENT | FUNCTION S* [IDENT S*]? ')' ] ;
 
 pseudo_block
     : IDENT
-    | FUNCTION spaces pseudo_block_function_ident ')'
+    | FUNCTION  pseudo_block_function_ident ')'
 ;
 
 pseudo_block_function_ident
     :
-    | IDENT spaces
+    | IDENT 
 ;
 
 declarations
     : declaration
-    | declarations ';' spaces declaration
-    | declarations ';' spaces
+    | declarations ';' declaration
+    | declarations ';' 
 ;
 
 declaration // : property ':' S* expr prio? ;
-    : property ':' spaces expr prio
-    { }
-    | property ':' spaces expr
-    {  }
+    : property ':' expr prio
+    | property ':' expr
+    
 ;
 
 prio // : IMPORTANT_SYM S* ;
-    : IMPORTANT_SYM spaces
+    : IMPORTANT_SYM 
 ;
 
 expr //: term [ operator? term ]*;
@@ -303,24 +302,24 @@ expr //: term [ operator? term ]*;
     {
         $$ = $1;
     }
-    | expr operator term
+    | expr operator term 
     | expr term
 ;
 
 term // : unary_operator?
      // [ NUMBER S* | PERCENTAGE S* | LENGTH S* | EMS S* | EXS S* | ANGLE S* | TIME S* | FREQ S* ]
      // | STRING S* | IDENT S* | URI S* | hexcolor | function ;
-    : unary_operator term_numeral spaces
-    | term_numeral spaces
-    | STRING spaces
+    : unary_operator term_numeral 
+    | term_numeral 
+    | STRING 
     {
         $$ = $1;
     }
-    | IDENT spaces
+    | IDENT 
     {
         $$ = $1;
     }
-    | URI spaces
+    | URI 
     {
         $$ = $1;
     }
@@ -340,19 +339,13 @@ term_numeral
 ;      
 
 function // : FUNCTION S* expr ')' S* ;
-    : FUNCTION spaces expr ')' spaces
+    :  FUNCTION  expr ')' 
 ;
-
-
 
 hexcolor // : HASH S* ;
-    : HASH spaces
+    : HASH 
 ;
 
-spaces
-    :
-    | spaces S
-;
 
 %%
 
