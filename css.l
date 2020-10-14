@@ -33,9 +33,10 @@ url	           ([!#$%&*-~]|{nonascii}|{escape})*
 s              [ \t\r\n\f]*
 w              [{s}]?
 nl             \n|\r\n|\r|\f
-ntonly         ["not"|"only"]*
-logand         "and"*
-inherit        ":not("*
+ntonly         "not"|"only"
+logand         (and)*
+inherit        (:not\()*
+identsk         (:{ident}())*
 
 
 A		a|\\0{0,4}(41|61)(\r\n|[ \t\r\n\f])?
@@ -72,10 +73,14 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 "~="                    {return INCLUDES;}
 "|="                    {return DASHMATCH;}
 "::"                    {return DOUBLEPOINT;}
-{ntonly}              {return NOTONLY;}
-{logand}              {return LOGAND;}
-{inherit}             {return INHERIT;}
+{ntonly}         {return NOTONLY;}
+{s}"and"{s}            {return LOGAND;}
+":not("             {return INHERIT;}
+
 "."{ident}           {return MULTI_CLASS;}
+"to"{s}               {return TO;}
+"calc("               {return CALC;}
+"var("{ident}")"                {return VAR;}
 
 
 
@@ -95,6 +100,7 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 @{P}{A}{G}{E}           {return PAGE_SYM;}
 @{M}{E}{D}{I}{A}        {return MEDIA_SYM;}
 @{N}{A}{M}{E}{S}{P}{A}{C}{E}  {return NAMESPACE_SYM;}
+
 
 "@charset "             {return CHARSET_SYM;}
 

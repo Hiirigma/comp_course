@@ -27,6 +27,7 @@ int yyerror(const char *s)
 %token LOGAND
 %token NOTONLY
 %token INHERIT
+%token TO
 %token <string> STRING
 %token <string> FREQ
 %token FUNCTION
@@ -43,6 +44,8 @@ int yyerror(const char *s)
 %token <string> PERCENTAGE 
 %token <string> TIME
 %token <string> URI
+%token VAR
+%token CALC
 
 %type <string> type_selector
 %type <string> id_selector
@@ -113,14 +116,21 @@ namespace // : NAMESPACE_SYM S* [STRING|URI] S* media_list? ';' S* ;
     | NAMESPACE_SYM prefix STRING ';'  
     | NAMESPACE_SYM prefix BAD_URI ';'
 ;
-    
+
 prefix 
-    : IDENT  {printf("perix here 2\n");}
+    : IDENT 
 ;
 
 media // : MEDIA_SYM S* media_list '{' S* ruleset* '}' S* ;
-    : MEDIA_SYM NOTONLY media_list '{'  rulesets '}' 
+    : MEDIA_SYM notonly media_list '{' rulesets '}' 
 ;
+
+
+notonly
+    :
+    | NOTONLY
+;
+
 
 rulesets
     :
@@ -131,6 +141,7 @@ media_list // : medium [ COMMA S* medium]* ;
     : medium
     | media_list ',' medium
     | media_list LOGAND media_declar
+    | media_declar
 ;
 
 media_declar
@@ -171,11 +182,17 @@ combinator // : '+' S* | '>' S* ;
     {
         
     }
+    | '~' 
+    {
+        
+    }
 ;
 
 unary_operator // : '-' | '+' ;
     : '-'
     | '+'
+    | '/'
+    | '*'
 ;
 
 property // : IDENT S* ;
@@ -206,21 +223,19 @@ selector_list
 ;
 
 complex_selector // : simple_selector [ combinator selector | S+ [ combinator? selector ]? ]? ;
-    : compound_selector
+    : compound_selector 
     | inherit_selector
     | complex_selector combinator compound_selector
     | complex_selector combinator complex_selector
-    // | inherit_selector combinator inherit_selector
-    // | inherit_selector combinator complex_selector
     | complex_selector combinator '*'
     | complex_selector complex_selector 
-    //| complex_selector inherit_selector
-    //| complex_selector 
         /* for space symbols skipping */
 ;
 
 inherit_selector
-    : compound_selector INHERIT compound_selector ')'
+    : 
+    | compound_selector INHERIT compound_selector ')'
+    | INHERIT compound_selector ')' inherit_selector
 ;
 
 universal_selector
@@ -293,6 +308,7 @@ pseudo_element
 
 pseudo_class_selector // : ':' [ IDENT | FUNCTION S* [IDENT S*]? ')' ] ;
     : ':' pseudo_block
+    | ':' function
 ;
 
 pseudo_block
@@ -306,16 +322,27 @@ pseudo_block_function_ident
 ;
 
 declarations
-    : declaration
-    | declarations ';' {printf("declra_1\n");} declaration
+    : 
+    | declaration
+    | declarations ';' declaration
     | declarations ';'
 ;
 
 declaration // : property ':' S* expr prio? ;
     : property  ':' expr prio
     | property ':' expr
-    
+    | property ':' CALC expre ')'
 ;
+
+
+expre
+    : term_numeral
+    | expre '+' expre
+    | expre '-' expre
+    | expre '*' expre
+    | expre '/' expre
+    | expre '^' expre
+    | '(' expre ')'
 
 prio // : IMPORTANT_SYM S* ;
     : IMPORTANT_SYM 
@@ -333,14 +360,17 @@ expr //: term [ operator? term ]*;
 term // : unary_operator?
      // [ NUMBER S* | PERCENTAGE S* | LENGTH S* | EMS S* | EXS S* | ANGLE S* | TIME S* | FREQ S* ]
      // | STRING S* | IDENT S* | URI S* | hexcolor | function ;
-    : unary_operator term_numeral 
+    : TO term
+    | unary_operator term_numeral 
     | term_numeral 
     | STRING 
     {
+        printf("string\n");
         $$ = $1;
     }
     | IDENT 
     {
+        printf("IDENT\n");
         $$ = $1;
     }
     | URI 
@@ -353,6 +383,7 @@ term // : unary_operator?
 
 term_numeral
     : NUMBER
+    | VAR
     | PERCENTAGE
     | LENGTH
     | EMS
@@ -364,7 +395,7 @@ term_numeral
 ;      
 
 function // : FUNCTION S* expr ')' S* ;
-    :  FUNCTION  expr ')' 
+    :  FUNCTION {printf ("func 1 \n"); } expr ')'
 ;
 
 hexcolor // : HASH S* ;
