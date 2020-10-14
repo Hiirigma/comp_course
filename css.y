@@ -25,6 +25,8 @@ int yyerror(const char *s)
 %token SP
 %token DOUBLEPOINT
 %token LOGAND
+%token NOTONLY
+%token INHERIT
 %token <string> STRING
 %token <string> FREQ
 %token FUNCTION
@@ -116,7 +118,7 @@ prefix
 ;
 
 media // : MEDIA_SYM S* media_list '{' S* ruleset* '}' S* ;
-    : MEDIA_SYM  media_list '{'  rulesets '}' 
+    : MEDIA_SYM NOTONLY media_list '{'  rulesets '}' 
 ;
 
 rulesets
@@ -126,14 +128,12 @@ rulesets
 
 media_list // : medium [ COMMA S* medium]* ;
     : medium
-    | media_list LOGAND medium
-    | media_list ',' medium
+    | media_list ','  medium
+    | media_list LOGAND '(' declarations ')'
 ;
 
-
-
 medium // : IDENT S* ;
-    : IDENT
+    : IDENT 
 ;
 
 page // : PAGE_SYM S* pseudo_page?
@@ -178,7 +178,14 @@ property // : IDENT S* ;
     : IDENT 
     {
         $$ = $1;
-        printf ("property -  %s\n",$1);
+    }
+    | '--' IDENT
+    {
+        $$ = '--' + $2;
+    }
+    | '-' IDENT
+    {
+        $$ = '-' + $2;
     }
 ;
 
@@ -196,10 +203,14 @@ selector_list
 
 complex_selector // : simple_selector [ combinator selector | S+ [ combinator? selector ]? ]? ;
     : compound_selector
-    | complex_selector combinator compound_selector
+    | complex_selector combinator  compound_selector
     | complex_selector  compound_selector 
     | complex_selector 
         /* for space symbols skipping */
+;
+
+inherit_selector
+    : simple_selector {printf ("here\n");} INHERIT class_selector ')'
 ;
 
 universal_selector
@@ -209,11 +220,13 @@ universal_selector
 
 compound_selector // : element_name [ HASH | class | attrib | pseudo ]* | [ HASH | class | attrib | pseudo ]+ ;
     : '*' type_selector
-    | type_selector
+    | type_selector 
     | '*' simple_selector
     | simple_selector
     | compound_selector simple_selector
 ;
+
+
 
 simple_selector
     : attribute_selector
@@ -273,7 +286,7 @@ pseudo_class_selector // : ':' [ IDENT | FUNCTION S* [IDENT S*]? ')' ] ;
 
 pseudo_block
     : IDENT
-    | FUNCTION  pseudo_block_function_ident ')'
+    | FUNCTION pseudo_block_function_ident ')'
 ;
 
 pseudo_block_function_ident
@@ -336,6 +349,7 @@ term_numeral
     | ANGLE
     | TIME
     | FREQ
+    | DIMENSION
 ;      
 
 function // : FUNCTION S* expr ')' S* ;
