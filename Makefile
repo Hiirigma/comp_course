@@ -1,7 +1,7 @@
 all: clean lx ycc cpp
 
 lx:
-	flex -d css.l
+	flex css.l
 
 ycc:
 	bison -d css.y
@@ -16,5 +16,5 @@ check:
 clean:
 	rm -f app.out
 	rm -f lex.yy.c
-	rm -f y.tab.c
-	rm -f y.tab.h
+	rm -f *.tab.c
+	rm -f *.tab.h

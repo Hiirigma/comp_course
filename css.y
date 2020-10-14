@@ -21,6 +21,7 @@ int yyerror(const char *s)
 %token CDC CDO CHARSET_SYM
 %token <string> DASHMATCH
 %token DIMENSION
+%token <string> CONTAINED
 %token EMS EXS
 %token SP
 %token DOUBLEPOINT
@@ -123,6 +124,7 @@ prefix
 
 media // : MEDIA_SYM S* media_list '{' S* ruleset* '}' S* ;
     : MEDIA_SYM notonly media_list '{' rulesets '}' 
+    | MEDIA_SYM notonly media_list '{' rulesets '}' 
 ;
 
 
@@ -141,7 +143,8 @@ media_list // : medium [ COMMA S* medium]* ;
     : medium
     | media_list ',' medium
     | media_list LOGAND media_declar
-    | media_declar
+    | media_declar ',' medium
+    | attribute_selector
 ;
 
 media_declar
@@ -291,6 +294,8 @@ attrib_eq
     {   $$ = $1;    }
     | DASHMATCH
     {   $$ = $1;    }
+    | CONTAINED
+    {   $$ = $1;    }
 ;
 
 attrib_value
@@ -365,12 +370,10 @@ term // : unary_operator?
     | term_numeral 
     | STRING 
     {
-        printf("string\n");
         $$ = $1;
     }
     | IDENT 
     {
-        printf("IDENT\n");
         $$ = $1;
     }
     | URI 
@@ -395,7 +398,7 @@ term_numeral
 ;      
 
 function // : FUNCTION S* expr ')' S* ;
-    :  FUNCTION {printf ("func 1 \n"); } expr ')'
+    :  FUNCTION expr ')'
 ;
 
 hexcolor // : HASH S* ;

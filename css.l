@@ -72,6 +72,7 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 "-->"                   {return CDC;}
 "~="                    {return INCLUDES;}
 "|="                    {return DASHMATCH;}
+"*="                    {return CONTAINED;}
 "::"                    {return DOUBLEPOINT;}
 {ntonly}         {return NOTONLY;}
 {s}"and"{s}            {return LOGAND;}
