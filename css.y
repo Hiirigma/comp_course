@@ -36,6 +36,7 @@ int yyerror(const char *s)
 %token IMPORT_SYM IMPORTANT_SYM
 %token <string> LENGTH
 %token MEDIA_SYM
+%token MULTI_CLASS
 %token NAMESPACE_SYM
 %token <string> NUMBER
 %token PAGE_SYM
@@ -128,9 +129,13 @@ rulesets
 
 media_list // : medium [ COMMA S* medium]* ;
     : medium
-    | media_list ','  medium
-    | media_list LOGAND '(' declarations ')'
+    | media_list ',' medium
+    | media_list LOGAND media_declar
 ;
+
+media_declar
+    : '(' declarations ')'
+    | media_declar ','  '(' declarations ')'
 
 medium // : IDENT S* ;
     : IDENT 
@@ -144,7 +149,6 @@ page // : PAGE_SYM S* pseudo_page?
 
 page_declarations
     :  declaration
-    | 
     | page_declarations ';'  declaration
     | page_declarations ';' 
 ;
@@ -190,7 +194,7 @@ property // : IDENT S* ;
 ;
 
 ruleset // : selector [ ',' S* selector ]* '{' S* declaration? [ ';' S* declaration? ]* '}' S* ;
-    : selector_list '{'  declarations '}' 
+    : selector_list '{' declarations '}' 
     | selector_list '{'  '}' 
 ;
 
@@ -203,15 +207,20 @@ selector_list
 
 complex_selector // : simple_selector [ combinator selector | S+ [ combinator? selector ]? ]? ;
     : compound_selector
+    | inherit_selector
     | complex_selector combinator compound_selector
-    | complex_selector combinator inherit_selector
-    | complex_selector compound_selector
-    | complex_selector 
+    | complex_selector combinator complex_selector
+    // | inherit_selector combinator inherit_selector
+    // | inherit_selector combinator complex_selector
+    | complex_selector combinator '*'
+    | complex_selector complex_selector 
+    //| complex_selector inherit_selector
+    //| complex_selector 
         /* for space symbols skipping */
 ;
 
 inherit_selector
-    : simple_selector INHERIT compound_selector ')'
+    : compound_selector INHERIT compound_selector ')'
 ;
 
 universal_selector
@@ -243,7 +252,7 @@ id_selector
 ;
 
 class_selector // : '.' IDENT ;
-    : '.' IDENT
+    : MULTI_CLASS
     { }
 ;
 
@@ -299,7 +308,7 @@ pseudo_block_function_ident
 declarations
     : declaration
     | declarations ';' {printf("declra_1\n");} declaration
-    | declarations ';' 
+    | declarations ';'
 ;
 
 declaration // : property ':' S* expr prio? ;

@@ -75,7 +75,7 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 {ntonly}              {return NOTONLY;}
 {logand}              {return LOGAND;}
 {inherit}             {return INHERIT;}
-
+"."{ident}           {return MULTI_CLASS;}
 
 
 
@@ -117,7 +117,6 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 {num}{H}{Z}		        {return FREQ;}
 {num}{K}{H}{Z}		    {return FREQ;}
 {num}{ident}		    {return DIMENSION;}
-
 {num}%			        {return PERCENTAGE;}
 {num}			        {return NUMBER;}
 
