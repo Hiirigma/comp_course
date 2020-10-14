@@ -203,14 +203,15 @@ selector_list
 
 complex_selector // : simple_selector [ combinator selector | S+ [ combinator? selector ]? ]? ;
     : compound_selector
-    | complex_selector combinator  compound_selector
-    | complex_selector  compound_selector 
+    | complex_selector combinator compound_selector
+    | complex_selector combinator inherit_selector
+    | complex_selector compound_selector
     | complex_selector 
         /* for space symbols skipping */
 ;
 
 inherit_selector
-    : simple_selector {printf ("here\n");} INHERIT class_selector ')'
+    : simple_selector INHERIT compound_selector ')'
 ;
 
 universal_selector
@@ -250,6 +251,7 @@ type_selector // : IDENT | '*' ;
     : IDENT
     {  }
 ;
+
 
 attribute_selector // : '[' S* IDENT S* [ [ '=' | INCLUDES | DASHMATCH ] S* [ IDENT | STRING ] S* ]? ']';
     : '['  IDENT  ']'
@@ -296,12 +298,12 @@ pseudo_block_function_ident
 
 declarations
     : declaration
-    | declarations ';' declaration
+    | declarations ';' {printf("declra_1\n");} declaration
     | declarations ';' 
 ;
 
 declaration // : property ':' S* expr prio? ;
-    : property ':' expr prio
+    : property  ':' expr prio
     | property ':' expr
     
 ;

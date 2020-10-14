@@ -22,7 +22,7 @@ baduri1        url\({w}([!#$%&*-\[\]-~]|{nonascii}|{escape})*{w}
 baduri2        url\({w}{string}{w}
 baduri3        url\({w}{badstring}
 comment        \/\*[^*]*\*+([^/*][^*]*\*+)*\/
-ident          -?{nmstart}{nmchar}*
+ident          -*{nmstart}{nmchar}*
 name           {nmchar}+
 num            [0-9]+|[0-9]*"."[0-9]+
 string         {string1}|{string2}
@@ -75,6 +75,8 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 {ntonly}              {return NOTONLY;}
 {logand}              {return LOGAND;}
 {inherit}             {return INHERIT;}
+
+
 
 
 {string}               { yylval.string = strdup(yytext);
