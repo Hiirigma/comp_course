@@ -11,7 +11,7 @@ nonascii       [\240-\377]
 unicode        \\{h}{1,6}(\r\n|[ \t\r\n\f])?
 escape         {unicode}|\\[^\r\n\f0-9a-f]
 nmstart        [_a-z]|{nonascii}|{escape}
-nmchar         [_a-z0-9-]|{nonascii}|{escape}
+nmchar         [_a-zA-Z0-9-]|{nonascii}|{escape}
 string1        \"([^\n\r\f\\"]|\\{nl}|{escape})*\"
 string2        \'([^\n\r\f\\']|\\{nl}|{escape})*\'
 badstring1     \"([^\n\r\f\\"]|\\{nl}|{escape})*\\?
@@ -40,13 +40,14 @@ identsk         (:{ident}())*
 
 
 A		a|\\0{0,4}(41|61)(\r\n|[ \t\r\n\f])?
+B		b|\\0{0,4}(42|62)(\r\n|[ \t\r\n\f])?
 C		c|\\0{0,4}(43|63)(\r\n|[ \t\r\n\f])?
 D		d|\\0{0,4}(44|64)(\r\n|[ \t\r\n\f])?
 E		e|\\0{0,4}(45|65)(\r\n|[ \t\r\n\f])?
 G		g|\\0{0,4}(47|67)(\r\n|[ \t\r\n\f])?|\\g
 H		h|\\0{0,4}(48|68)(\r\n|[ \t\r\n\f])?|\\h
 I		i|\\0{0,4}(49|69)(\r\n|[ \t\r\n\f])?|\\i
-F		f|\\0{0,4}(49|69)(\r\n|[ \t\r\n\f])?|\\f
+F		f|\\0{0,4}(46|66)(\r\n|[ \t\r\n\f])?|\\f
 K		k|\\0{0,4}(4b|6b)(\r\n|[ \t\r\n\f])?|\\k
 L   l|\\0{0,4}(4c|6c)(\r\n|[ \t\r\n\f])?|\\l
 M		m|\\0{0,4}(4d|6d)(\r\n|[ \t\r\n\f])?|\\m
@@ -57,9 +58,10 @@ R		r|\\0{0,4}(52|72)(\r\n|[ \t\r\n\f])?|\\r
 S		s|\\0{0,4}(53|73)(\r\n|[ \t\r\n\f])?|\\s
 T		t|\\0{0,4}(54|74)(\r\n|[ \t\r\n\f])?|\\t
 U   u|\\0{0,4}(55|75)(\r\n|[ \t\r\n\f])?|\\u
-Y   y|\\0{0,4}(55|75)(\r\n|[ \t\r\n\f])?|\\y
+Y   y|\\0{0,4}(59|79)(\r\n|[ \t\r\n\f])?|\\y
 X		x|\\0{0,4}(58|78)(\r\n|[ \t\r\n\f])?|\\x
 Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
+W		w|\\0{0,4}(57|77)(\r\n|[ \t\r\n\f])?|\\w
 
 %%
 
@@ -75,16 +77,14 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 "*="                    {return CONTAINED;}
 "::"                    {return DOUBLEPOINT;}
 {ntonly}         {return NOTONLY;}
-{s}"and"{s}            {return LOGAND;}
+"and"{s}            {return LOGAND;}
 ":not("             {return INHERIT;}
 
 "."{ident}           {return MULTI_CLASS;}
 "to"{s}               {return TO;}
+"from"{s}          {return FROM;}
 "calc("               {return CALC;}
-"var("{ident}")"                {return VAR;}
-
-
-
+"var("{ident}")"        {return VAR;}
 {string}               { yylval.string = strdup(yytext);
                           return STRING;
                         }
@@ -101,7 +101,9 @@ Z		z|\\0{0,4}(5a|7a)(\r\n|[ \t\r\n\f])?|\\z
 @{P}{A}{G}{E}           {return PAGE_SYM;}
 @{M}{E}{D}{I}{A}        {return MEDIA_SYM;}
 @{N}{A}{M}{E}{S}{P}{A}{C}{E}  {return NAMESPACE_SYM;}
-
+@{K}{E}{Y}{F}{R}{A}{M}{E}{S}   {return KEYFRAME_SYM;}
+@-{W}{E}{B}{K}{I}{T}-{K}{E}{Y}{F}{R}{A}{M}{E}{S} {return WEBKIT_SYM;}
+@{F}{O}{N}{T}-{F}{A}{C}{E}  {return FONTFACE_SYM;}
 
 "@charset "             {return CHARSET_SYM;}
 

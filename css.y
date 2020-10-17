@@ -29,17 +29,22 @@ int yyerror(const char *s)
 %token NOTONLY
 %token INHERIT
 %token TO
+%token FROM
 %token <string> STRING
 %token <string> FREQ
 %token FUNCTION
 %token <string> HASH
 %token <string> IDENT
+%token <string> UPIDENT
 %token <string> INCLUDES
 %token IMPORT_SYM IMPORTANT_SYM
+%token FONTFACE_SYM
 %token <string> LENGTH
 %token MEDIA_SYM
 %token MULTI_CLASS
 %token NAMESPACE_SYM
+%token KEYFRAME_SYM
+%token WEBKIT_SYM
 %token <string> NUMBER
 %token PAGE_SYM
 %token <string> PERCENTAGE 
@@ -64,7 +69,8 @@ int yyerror(const char *s)
 stylesheet // : [ CHARSET_SYM STRING ';' ]?
            //   [S|CDO|CDC]* [ import [ CDO S* | CDC S* ]* ]*
            //   [ [ ruleset | media | page ] [ CDO S* | CDC S* ]* ]* ;
-    : charset comments namespace_block import_block body
+    : 
+    | charset comments namespace_block import_block keyframe_block fontface_block body stylesheet
 ;
 
 charset
@@ -86,11 +92,43 @@ import_block
     :
     | import subcomments
 ;
+fontface_block
+    :
+    | fontface subcomments
+;
+
+fontface
+    : FONTFACE_SYM '{' declarations '}'
+;
+
 
 namespace_block
     :
     | namespace subcomments
 ;
+
+keyframe_block
+    :
+    | keyframe subcomments
+;
+
+keyframe
+    : KEYFRAME_SYM IDENT '{' keyframe_ruleset '}'
+    | WEBKIT_SYM IDENT '{' keyframe_ruleset '}'
+;
+
+keyframe_ruleset
+    : 
+    | FROM '{' declarations '}' keyframe_ruleset
+    | TO '{' declarations '}' keyframe_ruleset
+    | percent keyframe_ruleset
+;
+
+percent
+    :  
+    | PERCENTAGE '{' declarations '}' percent
+;
+
 
 body
     :
@@ -113,13 +151,9 @@ import // : IMPORT_SYM S* [STRING|URI] S* media_list? ';' S* ;
 ;
     
 namespace // : NAMESPACE_SYM S* [STRING|URI] S* media_list? ';' S* ;
-    : NAMESPACE_SYM prefix URI ';' 
-    | NAMESPACE_SYM prefix STRING ';'  
-    | NAMESPACE_SYM prefix BAD_URI ';'
-;
-
-prefix 
-    : IDENT 
+    : NAMESPACE_SYM IDENT URI ';' 
+    | NAMESPACE_SYM IDENT STRING ';'  
+    | NAMESPACE_SYM IDENT BAD_URI ';'
 ;
 
 media // : MEDIA_SYM S* media_list '{' S* ruleset* '}' S* ;
