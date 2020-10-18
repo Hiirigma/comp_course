@@ -88,9 +88,6 @@ sym
     | SYM  URI  media_list ';' 
     | SYM  STRING ';' 
     | SYM  URI  ';' 
-    //| SYM IDENT URI ';' 
-    //| SYM IDENT STRING ';'  
-    //| SYM IDENT BAD_URI ';'
     | SYM  pseudo_page '{' page_declarations '}' 
     | SYM  '{' page_declarations '}' 
 ;
@@ -114,9 +111,16 @@ keyframe_ruleset
 
 percent
     :  
-    | PERCENTAGE '{' declarations '}' percent
+    | PERCENTAGE many_percent '{' declarations '}' percent
 ;
 
+
+many_percent
+    :
+    | ',' PERCENTAGE many_percent
+    | ',' TO many_percent
+    | ',' FROM many_percent
+;
 
 body
     :
@@ -165,12 +169,13 @@ page_declarations
 ;
 
 pseudo_page // : ':' IDENT S* ;
-    : ':' IDENT 
+    : ':' IDENT
 ;
 
 operator // : '/' S* | ',' S* ;
     : '/' 
     | ',' 
+    | '='
 ;
 
 combinator // : '+' S* | '>' S* ;
@@ -228,6 +233,7 @@ complex_selector // : simple_selector [ combinator selector | S+ [ combinator? s
     | complex_selector combinator compound_selector
     | complex_selector combinator complex_selector
     | complex_selector combinator '*'
+    | complex_selector '*'
     | complex_selector complex_selector 
         /* for space symbols skipping */
 ;
