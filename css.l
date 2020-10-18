@@ -97,15 +97,7 @@ W		w|\\0{0,4}(57|77)(\r\n|[ \t\r\n\f])?|\\w
 "#"{name}               { yylval.string = strdup(yytext);
                           return HASH;}
 
-@{I}{M}{P}{O}{R}{T}     {return IMPORT_SYM;}
-@{P}{A}{G}{E}           {return PAGE_SYM;}
-@{M}{E}{D}{I}{A}        {return MEDIA_SYM;}
-@{N}{A}{M}{E}{S}{P}{A}{C}{E}  {return NAMESPACE_SYM;}
-@{K}{E}{Y}{F}{R}{A}{M}{E}{S}   {return KEYFRAME_SYM;}
-@-{W}{E}{B}{K}{I}{T}-{K}{E}{Y}{F}{R}{A}{M}{E}{S} {return WEBKIT_SYM;}
-@{F}{O}{N}{T}-{F}{A}{C}{E}  {return FONTFACE_SYM;}
-
-"@charset "             {return CHARSET_SYM;}
+@{ident} {return SYM;}
 
 
 "!"({w}|{comment})*{I}{M}{P}{O}{R}{T}{A}{N}{T}          {return IMPORTANT_SYM;}

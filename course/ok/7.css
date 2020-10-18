@@ -221,7 +221,7 @@ div.ring2 {
   top: calc(50% - 0.4062rem);
   left: -0.46875rem;
 }
-/* 
+
 @keyframes movement {
   from {
     transform: rotate(0deg);
@@ -230,7 +230,7 @@ div.ring2 {
   to {
     transform: rotate(360deg);
   }
-} */
+}
 
 /*media-queries, so it will look nice at all screen widths :) */
 

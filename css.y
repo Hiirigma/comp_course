@@ -18,7 +18,7 @@ int yyerror(const char *s)
 %token <string> ANGLE
 %token <string> BAD_STRING
 %token <string> BAD_URI
-%token CDC CDO CHARSET_SYM
+%token CDC CDO
 %token <string> DASHMATCH
 %token DIMENSION
 %token <string> CONTAINED
@@ -37,16 +37,11 @@ int yyerror(const char *s)
 %token <string> IDENT
 %token <string> UPIDENT
 %token <string> INCLUDES
-%token IMPORT_SYM IMPORTANT_SYM
-%token FONTFACE_SYM
+%token IMPORTANT_SYM
 %token <string> LENGTH
-%token MEDIA_SYM
 %token MULTI_CLASS
-%token NAMESPACE_SYM
-%token KEYFRAME_SYM
-%token WEBKIT_SYM
+%token SYM
 %token <string> NUMBER
-%token PAGE_SYM
 %token <string> PERCENTAGE 
 %token <string> TIME
 %token <string> URI
@@ -70,15 +65,7 @@ stylesheet // : [ CHARSET_SYM STRING ';' ]?
            //   [S|CDO|CDC]* [ import [ CDO S* | CDC S* ]* ]*
            //   [ [ ruleset | media | page ] [ CDO S* | CDC S* ]* ]* ;
     : 
-    | charset comments namespace_block import_block keyframe_block fontface_block body stylesheet
-;
-
-charset
-    :
-    | CHARSET_SYM STRING ';'
-    {
-       
-    }
+    | comments sym_block body stylesheet
 ;
 
 comments
@@ -88,40 +75,41 @@ comments
     | comments CDC
 ;
 
-import_block
+
+sym_block
     :
-    | import subcomments
-;
-fontface_block
-    :
-    | fontface subcomments
+    | sym subcomments
 ;
 
-fontface
-    : FONTFACE_SYM '{' declarations '}'
+sym
+    : SYM '{' declarations '}'
+    | SYM notonly sub_sym_namespace
+    | SYM  STRING  media_list ';' 
+    | SYM  URI  media_list ';' 
+    | SYM  STRING ';' 
+    | SYM  URI  ';' 
+    //| SYM IDENT URI ';' 
+    //| SYM IDENT STRING ';'  
+    //| SYM IDENT BAD_URI ';'
+    | SYM  pseudo_page '{' page_declarations '}' 
+    | SYM  '{' page_declarations '}' 
 ;
 
+sub_sym_namespace
+    : media_list URI ';'
+    | media_list STRING ';'
+    | media_list BAD_URI ';'
+    | media_list '{' keyframe_ruleset '}' 
+    ;
 
-namespace_block
-    :
-    | namespace subcomments
-;
 
-keyframe_block
-    :
-    | keyframe subcomments
-;
-
-keyframe
-    : KEYFRAME_SYM IDENT '{' keyframe_ruleset '}'
-    | WEBKIT_SYM IDENT '{' keyframe_ruleset '}'
-;
 
 keyframe_ruleset
     : 
     | FROM '{' declarations '}' keyframe_ruleset
     | TO '{' declarations '}' keyframe_ruleset
     | percent keyframe_ruleset
+    | ruleset keyframe_ruleset
 ;
 
 percent
@@ -133,8 +121,7 @@ percent
 body
     :
     | body ruleset subcomments
-    | body media subcomments
-    | body page subcomments
+    | body sym subcomments
 ;
 
 subcomments
@@ -142,25 +129,6 @@ subcomments
     | subcomments CDO 
     | subcomments CDC 
 ;
-
-import // : IMPORT_SYM S* [STRING|URI] S* media_list? ';' S* ;
-    : IMPORT_SYM  STRING  media_list ';' 
-    | IMPORT_SYM  URI  media_list ';' 
-    | IMPORT_SYM  STRING  ';' 
-    | IMPORT_SYM  URI  ';' 
-;
-    
-namespace // : NAMESPACE_SYM S* [STRING|URI] S* media_list? ';' S* ;
-    : NAMESPACE_SYM IDENT URI ';' 
-    | NAMESPACE_SYM IDENT STRING ';'  
-    | NAMESPACE_SYM IDENT BAD_URI ';'
-;
-
-media // : MEDIA_SYM S* media_list '{' S* ruleset* '}' S* ;
-    : MEDIA_SYM notonly media_list '{' rulesets '}' 
-    | MEDIA_SYM notonly media_list '{' rulesets '}' 
-;
-
 
 notonly
     :
@@ -189,11 +157,6 @@ medium // : IDENT S* ;
     : IDENT 
 ;
 
-page // : PAGE_SYM S* pseudo_page?
-     //   '{' S* declaration? [ ';' S* declaration? ]* '}' S* ;
-    : PAGE_SYM  pseudo_page '{' page_declarations '}' 
-    | PAGE_SYM  '{' page_declarations '}' 
-;
 
 page_declarations
     :  declaration
