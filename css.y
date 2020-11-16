@@ -84,6 +84,8 @@ sym_block
 sym
     : SYM '{' declarations '}'
     | SYM notonly sub_sym_namespace
+    | SYM sub_sym_namespace
+    | SYM IDENT ',' media_declar '{' body '}' 
     | SYM  STRING  media_list ';' 
     | SYM  URI  media_list ';' 
     | SYM  STRING ';' 
@@ -112,6 +114,7 @@ keyframe_ruleset
 percent
     :  
     | PERCENTAGE many_percent '{' declarations '}' percent
+    | FROM many_percent '{' declarations '}' percent
 ;
 
 
@@ -158,7 +161,7 @@ media_declar
     | media_declar ','  '(' declarations ')'
 
 medium // : IDENT S* ;
-    : IDENT 
+    : IDENT
 ;
 
 
