@@ -23,7 +23,6 @@ int yyerror(const char *s)
 %token DIMENSION
 %token <string> CONTAINED
 %token EMS EXS
-%token SP
 %token DOUBLEPOINT
 %token LOGAND
 %token NOTONLY
@@ -61,16 +60,13 @@ int yyerror(const char *s)
 
 %%
 
-stylesheet // : [ CHARSET_SYM STRING ';' ]?
-           //   [S|CDO|CDC]* [ import [ CDO S* | CDC S* ]* ]*
-           //   [ [ ruleset | media | page ] [ CDO S* | CDC S* ]* ]* ;
+stylesheet
     : 
     | comments sym_block body stylesheet
 ;
 
 comments
     :
-    | comments SP
     | comments CDO
     | comments CDC
 ;
@@ -78,7 +74,7 @@ comments
 
 sym_block
     :
-    | sym subcomments
+    | sym comments
 ;
 
 sym
@@ -86,12 +82,12 @@ sym
     | SYM notonly sub_sym_namespace
     | SYM sub_sym_namespace
     | SYM IDENT ',' media_declar '{' body '}' 
-    | SYM  STRING  media_list ';' 
-    | SYM  URI  media_list ';' 
-    | SYM  STRING ';' 
-    | SYM  URI  ';' 
-    | SYM  pseudo_page '{' page_declarations '}' 
-    | SYM  '{' page_declarations '}' 
+    | SYM STRING  media_list ';' 
+    | SYM URI  media_list ';' 
+    | SYM STRING ';' 
+    | SYM URI  ';' 
+    | SYM pseudo_page '{' page_declarations '}' 
+    | SYM '{' page_declarations '}' 
 ;
 
 sub_sym_namespace
@@ -127,21 +123,14 @@ many_percent
 
 body
     :
-    | body ruleset subcomments
-    | body sym subcomments
-;
-
-subcomments
-    :
-    | subcomments CDO 
-    | subcomments CDC 
+    | body ruleset comments
+    | body sym comments
 ;
 
 notonly
     :
     | NOTONLY
 ;
-
 
 rulesets
     :
@@ -203,22 +192,8 @@ unary_operator // : '-' | '+' ;
     | '*'
 ;
 
-property // : IDENT S* ;
-    : IDENT 
-    {
-        $$ = $1;
-    }
-    | '--' IDENT
-    {
-        $$ = '--' + $2;
-    }
-    | '-' IDENT
-    {
-        $$ = '-' + $2;
-    }
-;
 
-ruleset // : selector [ ',' S* selector ]* '{' S* declaration? [ ';' S* declaration? ]* '}' S* ;
+ruleset
     : selector_list '{' declarations '}' 
     | selector_list '{'  '}' 
 ;
@@ -230,7 +205,7 @@ selector_list
     | selector_list ','  universal_selector
 ;
 
-complex_selector // : simple_selector [ combinator selector | S+ [ combinator? selector ]? ]? ;
+complex_selector
     : compound_selector 
     | inherit_selector
     | complex_selector combinator compound_selector
@@ -238,7 +213,6 @@ complex_selector // : simple_selector [ combinator selector | S+ [ combinator? s
     | complex_selector combinator '*'
     | complex_selector '*'
     | complex_selector complex_selector 
-        /* for space symbols skipping */
 ;
 
 inherit_selector
@@ -252,15 +226,13 @@ universal_selector
     | '*'
 ;
 
-compound_selector // : element_name [ HASH | class | attrib | pseudo ]* | [ HASH | class | attrib | pseudo ]+ ;
+compound_selector
     : '*' type_selector
     | type_selector 
     | '*' simple_selector
     | simple_selector
     | compound_selector simple_selector
 ;
-
-
 
 simple_selector
     : attribute_selector
@@ -272,25 +244,20 @@ simple_selector
 
 id_selector
     : HASH
-    { }
 ;
 
 class_selector // : '.' IDENT ;
     : MULTI_CLASS
-    { }
 ;
 
 type_selector // : IDENT | '*' ;
     : IDENT
-    {  }
 ;
 
 
 attribute_selector // : '[' S* IDENT S* [ [ '=' | INCLUDES | DASHMATCH ] S* [ IDENT | STRING ] S* ]? ']';
     : '['  IDENT  ']'
-    {  }
     | '['  IDENT  attrib_eq  attrib_value  ']'
-    {  }
 ;
 
 attrib_eq
@@ -332,6 +299,21 @@ pseudo_block_function_ident
     | IDENT 
 ;
 
+property
+    : IDENT 
+    {
+        $$ = $1;
+    }
+    | '-' IDENT
+    {
+        $$ = '-' + $2;
+    }
+    | '_' IDENT
+    {
+        $$ = '_' + $2;
+    }
+;
+
 declarations
     : 
     | declaration
@@ -339,7 +321,7 @@ declarations
     | declarations ';'
 ;
 
-declaration // : property ':' S* expr prio? ;
+declaration
     : property  ':' expr prio
     | property ':' expr
     | property ':' CALC expre ')'
@@ -354,12 +336,13 @@ expre
     | expre '/' expre
     | expre '^' expre
     | '(' expre ')'
+;
 
-prio // : IMPORTANT_SYM S* ;
+prio 
     : IMPORTANT_SYM 
 ;
 
-expr //: term [ operator? term ]*;
+expr
     : term
     {
         $$ = $1;
