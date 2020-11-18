@@ -239,7 +239,6 @@ simple_selector
     | class_selector
     | id_selector
     | pseudo_class_selector
-    | pseudo_element
 ;
 
 id_selector
@@ -250,7 +249,7 @@ class_selector // : '.' IDENT ;
     : MULTI_CLASS
 ;
 
-type_selector // : IDENT | '*' ;
+type_selector
     : IDENT
 ;
 
@@ -278,21 +277,18 @@ attrib_value
     {   $$ = $1;    }
 ;
 
-// add pseudo_element in the parser
-pseudo_element 
-    : DOUBLEPOINT pseudo_block
-;
-
-
 pseudo_class_selector // : ':' [ IDENT | FUNCTION S* [IDENT S*]? ')' ] ;
     : ':' pseudo_block
     | ':' function
+    | DOUBLEPOINT pseudo_block
 ;
 
 pseudo_block
     : IDENT
     | FUNCTION pseudo_block_function_ident ')'
 ;
+//.list-item:nth-child(2n-1)
+
 
 pseudo_block_function_ident
     :
@@ -311,6 +307,10 @@ property
     | '_' IDENT
     {
         $$ = '_' + $2;
+    }
+    | '*' IDENT
+    {
+        $$ = '*' + $2;
     }
 ;
 
